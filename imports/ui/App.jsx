@@ -10,6 +10,7 @@ import Task from './Task.jsx';
 import {Tasks} from '../api/tasks';
 import AccountsUIWrapper from './AccountsUIWrapper';
 
+
 class App extends Component{
 
     constructor(props) {
@@ -22,8 +23,8 @@ class App extends Component{
     handleSubmit(event) {
         event.preventDefault();
         const text = ReactDOM.findDOMNode(this.refs.textInput).value.trim();
-
-        Meteor.call('tasks.insert', text);
+        const userId = ReactDOM.findDOMNode(this.refs.selectInput).value.trim();
+        Meteor.call('tasks.insert', text, userId);
 
         ReactDOM.findDOMNode(this.refs.textInput).value = '';
     }
@@ -41,12 +42,23 @@ class App extends Component{
         }
         return filteredTasks
             .map((task) => {
+                console.log(task);
                 const currentUserId = this.props.currentUser && this.props.currentUser._id;
                 const showPrivateButton = task.owner === currentUserId;
                 return (
                     <Task key={task._id} task={task} showPrivateButton={showPrivateButton}/>
                 );
             });
+    }
+
+    renderUsers() {
+        let users = this.props.users;
+        return users.
+            map((user) => {
+            return (
+                <option value={user._id} key={user._id}>{user.username}</option>
+            );
+        })
     }
 
     render() {
@@ -72,6 +84,9 @@ class App extends Component{
                                 ref="textInput"
                                 placeholder="Type to add new tasks"
                             />
+                            <select name="mainSelect" id="mainSelect" className="selector" ref="selectInput">
+                                {this.renderUsers()}
+                            </select>
                         </form> : ''
                     }
                 </header>
@@ -92,9 +107,11 @@ App.propTypes = {
 
 export default createContainer(() => {
     Meteor.subscribe('tasks');
+    Meteor.subscribe('users');
 
     return {
         tasks: Tasks.find({}, {sort: {createdAt: -1}}).fetch(),
+        users: Meteor.users.find({}).fetch(),
         incompleteCount: Tasks.find({checked: {$ne: true}}).count(),
         currentUser: Meteor.user(),
     };

@@ -19,6 +19,7 @@ export default class Task extends Component{
         Meteor.call('tasks.remove', this.props.task._id);
     }
 
+
     render() {
         const taskClassName = classnames({
             checked: this.props.task.checked,
@@ -35,12 +36,16 @@ export default class Task extends Component{
                     checked={this.props.task.checked}
                     onClick={this.toggleChecked.bind(this)}
                 />
+                {this.props.task.forUser ?
+                    <span>For: {this.props.task.forUser.username}</span> :
+                 <span>For Anyone</span> }
                 { this.props.showPrivateButton? (
                     <button className="toggle-private" onClick={this.togglePrivate.bind(this)}>
                         {this.props.task.private ? 'Private' : 'Public'}
                     </button>
                 ) : '' }
                 <span className="text">
+                    <i>[{this.props.task.score ? this.props.task.score : 'NA'}]</i>
                     <strong>{this.props.task.username}</strong>: {this.props.task.text}
                 </span>
             </li>
